@@ -545,8 +545,18 @@ class HTTPAdapter(BaseAdapter):
             using_socks_proxy = proxy_scheme.startswith("socks")
 
         url = request.path_url
-        if url.startswith("//"):  # Don't confuse urllib3
-            url = f"/{url.lstrip('/')}"
+        if url.startswith("//"):
+            # URLs with a path starting with "//" can confuse urllib3 into
+            # interpreting the path as a URI with a netloc (authority).
+            # Only collapse the leading slashes when the first path segment
+            # contains a colon, which makes it look like "host:port" to
+            # urllib3's URL parser (see #6643). Preserve double slashes in
+            # all other cases so that legitimate paths (e.g. S3 keys with a
+            # leading "/") are not modified, which would break pre-signed
+            # URLs (see #6711).
+            first_segment = url.lstrip("/").split("/", 1)[0].split("?", 1)[0]
+            if ":" in first_segment:
+                url = f"/{url.lstrip('/')}"
 
         if is_proxied_http_request and not using_socks_proxy:
             url = urldefragauth(request.url)
