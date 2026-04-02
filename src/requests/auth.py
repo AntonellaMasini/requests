@@ -145,7 +145,7 @@ class HTTPDigestAuth(AuthBase):
             def md5_utf8(x):
                 if isinstance(x, str):
                     x = x.encode("utf-8")
-                return hashlib.md5(x).hexdigest()
+                return hashlib.md5(x, usedforsecurity=False).hexdigest()
 
             hash_utf8 = md5_utf8
         elif _algorithm == "SHA":
@@ -202,7 +202,7 @@ class HTTPDigestAuth(AuthBase):
         s += time.ctime().encode("utf-8")
         s += os.urandom(8)
 
-        cnonce = hashlib.sha1(s).hexdigest()[:16]
+        cnonce = hashlib.sha1(s, usedforsecurity=False).hexdigest()[:16]
         if _algorithm == "MD5-SESS":
             HA1 = hash_utf8(f"{HA1}:{nonce}:{cnonce}")
 
