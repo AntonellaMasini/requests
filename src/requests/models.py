@@ -449,6 +449,12 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         # non-ASCII characters. This allows users to automatically get the correct IDNA
         # behaviour. For strings containing only ASCII characters, we need to also verify
         # it doesn't start with a wildcard (*), before allowing the unencoded hostname.
+        # Strip trailing dot from FQDN hostnames to avoid issues with
+        # mismatched Host headers causing infinite redirect loops.
+        # (e.g., "example.com." -> "example.com")
+        if host.endswith("."):
+            host = host[:-1]
+
         if not unicode_is_ascii(host):
             try:
                 host = self._get_idna_encoded_host(host)

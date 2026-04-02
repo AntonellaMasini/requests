@@ -3042,3 +3042,32 @@ def test_json_decode_errors_are_serializable_deserializable():
     )
     deserialized_error = pickle.loads(pickle.dumps(json_decode_error))
     assert repr(json_decode_error) == repr(deserialized_error)
+
+
+@pytest.mark.parametrize(
+    "url, expected_url",
+    [
+        (
+            "https://example.com./path",
+            "https://example.com/path",
+        ),
+        (
+            "https://example.com.",
+            "https://example.com/",
+        ),
+        (
+            "https://example.com.:443/path",
+            "https://example.com:443/path",
+        ),
+        (
+            "https://example.com/path",
+            "https://example.com/path",
+        ),
+    ],
+)
+def test_fqdn_trailing_dot_stripped_from_url(url, expected_url):
+    """Ensure that FQDN URLs with a trailing dot on the hostname have
+    the dot stripped to avoid infinite redirect loops (issue #7209)."""
+    p = PreparedRequest()
+    p.prepare(method="GET", url=url)
+    assert p.url == expected_url
