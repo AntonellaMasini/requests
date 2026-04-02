@@ -807,6 +807,48 @@ class TestRequests:
             r = requests.get(url, auth=auth)
             assert '"auth"' in r.request.headers["Authorization"]
 
+    @pytest.mark.parametrize(
+        "url, expected_uri",
+        [
+            (
+                "http://example.com/path/a;b",
+                "/path/a;b",
+            ),
+            (
+                "http://example.com/path/a;b?q=1",
+                "/path/a;b?q=1",
+            ),
+            (
+                "http://example.com/ws/2/collection/id/releases/uuid1;uuid2?fmt=json",
+                "/ws/2/collection/id/releases/uuid1;uuid2?fmt=json",
+            ),
+            (
+                "http://example.com/path",
+                "/path",
+            ),
+            (
+                "http://example.com/path?a=1&b=2",
+                "/path?a=1&b=2",
+            ),
+        ],
+    )
+    def test_DIGESTAUTH_URI_SEMICOLON_PRESERVED(self, url, expected_uri):
+        """Ensure digest auth uri field preserves semicolons in URL path.
+
+        See https://github.com/psf/requests/issues/6990
+        """
+        auth = HTTPDigestAuth("user", "pass")
+        auth.init_per_thread_state()
+        auth._thread_local.chal = {
+            "realm": "test@example.com",
+            "nonce": "abc123",
+            "qop": "auth",
+        }
+        header = auth.build_digest_header("GET", url)
+        assert header is not None
+        # Extract the uri value from the Digest header
+        assert f'uri="{expected_uri}"' in header
+
     def test_POSTBIN_GET_POST_FILES(self, httpbin):
         url = httpbin("post")
         requests.post(url).raise_for_status()
