@@ -42,17 +42,22 @@ import warnings
 
 import urllib3
 
+# Only check the version of the character detection library that is
+# actually resolved for use by requests (via compat._resolve_char_detection).
+# This avoids spurious warnings when chardet is installed by another package
+# but requests was not installed with the [use-chardet-on-py3] extra.
+# See: https://github.com/psf/requests/issues/7223
+from .compat import chardet as _chardet_module
 from .exceptions import RequestsDependencyWarning
 
-try:
-    from charset_normalizer import __version__ as charset_normalizer_version
-except ImportError:
-    charset_normalizer_version = None
+charset_normalizer_version = None
+chardet_version = None
 
-try:
-    from chardet import __version__ as chardet_version
-except ImportError:
-    chardet_version = None
+if _chardet_module is not None:
+    if _chardet_module.__name__ == "charset_normalizer":
+        charset_normalizer_version = _chardet_module.__version__
+    elif _chardet_module.__name__ == "chardet":
+        chardet_version = _chardet_module.__version__
 
 
 def check_compatibility(urllib3_version, chardet_version, charset_normalizer_version):
