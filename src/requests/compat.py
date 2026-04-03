@@ -28,9 +28,14 @@ except (TypeError, AttributeError):
 
 
 def _resolve_char_detection():
-    """Find supported character detection libraries."""
+    """Find supported character detection libraries.
+
+    Prefers ``charset_normalizer`` since it is the default required dependency.
+    ``chardet`` is only used as a fallback when ``charset_normalizer`` is not
+    available (i.e. the ``[use_chardet_on_py3]`` extra was installed instead).
+    """
     chardet = None
-    for lib in ("chardet", "charset_normalizer"):
+    for lib in ("charset_normalizer", "chardet"):
         if chardet is None:
             try:
                 chardet = importlib.import_module(lib)

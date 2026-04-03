@@ -15,9 +15,15 @@ try:
 except ImportError:
     charset_normalizer = None
 
-try:
-    import chardet
-except ImportError:
+# Only report chardet if charset_normalizer is not available, matching the
+# runtime behaviour in compat.py (charset_normalizer is the default required
+# dependency; chardet is only used via the [use_chardet_on_py3] extra).
+if charset_normalizer is None:
+    try:
+        import chardet
+    except ImportError:
+        chardet = None
+else:
     chardet = None
 
 try:

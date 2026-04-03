@@ -49,9 +49,15 @@ try:
 except ImportError:
     charset_normalizer_version = None
 
-try:
-    from chardet import __version__ as chardet_version
-except ImportError:
+# Only check for chardet if charset_normalizer is not available.
+# chardet is an optional dependency (via the [use_chardet_on_py3] extra)
+# and should not be used when it is merely installed by another package.
+if charset_normalizer_version is None:
+    try:
+        from chardet import __version__ as chardet_version
+    except ImportError:
+        chardet_version = None
+else:
     chardet_version = None
 
 
@@ -72,16 +78,16 @@ def check_compatibility(urllib3_version, chardet_version, charset_normalizer_ver
         assert minor >= 21
 
     # Check charset_normalizer for compatibility.
-    if chardet_version:
-        major, minor, patch = chardet_version.split(".")[:3]
-        major, minor, patch = int(major), int(minor), int(patch)
-        # chardet_version >= 3.0.2, < 8.0.0
-        assert (3, 0, 2) <= (major, minor, patch) < (8, 0, 0)
-    elif charset_normalizer_version:
+    if charset_normalizer_version:
         major, minor, patch = charset_normalizer_version.split(".")[:3]
         major, minor, patch = int(major), int(minor), int(patch)
         # charset_normalizer >= 2.0.0 < 4.0.0
         assert (2, 0, 0) <= (major, minor, patch) < (4, 0, 0)
+    elif chardet_version:
+        major, minor, patch = chardet_version.split(".")[:3]
+        major, minor, patch = int(major), int(minor), int(patch)
+        # chardet_version >= 3.0.2, < 8.0.0
+        assert (3, 0, 2) <= (major, minor, patch) < (8, 0, 0)
     else:
         warnings.warn(
             "Unable to find acceptable character detection dependency "
