@@ -2737,6 +2737,21 @@ class TestPreparingURLs:
                 "http://[1200:0000:ab00:1234:0000:2552:7777:1313]:12345/",
                 "http://[1200:0000:ab00:1234:0000:2552:7777:1313]:12345/",
             ),
+            # IPv6 with double-digit zone ID (issue #6808)
+            (
+                "http://[fe80::be0f:a7ff:fe00:2929%2553]/",
+                "http://[fe80::be0f:a7ff:fe00:2929%2553]/",
+            ),
+            # IPv6 with single-digit zone ID
+            (
+                "http://[fe80::be0f:a7ff:fe00:2929%251]/",
+                "http://[fe80::be0f:a7ff:fe00:2929%251]/",
+            ),
+            # IPv6 with named zone ID
+            (
+                "http://[fe80::a%25en1]/",
+                "http://[fe80::a%25en1]/",
+            ),
         ),
     )
     def test_preparing_url(self, url, expected):

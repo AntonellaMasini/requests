@@ -457,6 +457,14 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         elif host.startswith(("*", ".")):
             raise InvalidURL("URL has an invalid label.")
 
+        # If the host is a bracketed IPv6 with a zone ID (e.g. [fe80::1%eth0]),
+        # re-encode the bare '%' as '%25' so that requote_uri does not
+        # mistakenly decode the zone ID characters as percent-escape sequences.
+        # See: https://github.com/psf/requests/issues/6808
+        if host and host.startswith("[") and host.endswith("]") and "%" in host:
+            # Replace only the first bare '%' which delimits the zone ID
+            host = host.replace("%", "%25", 1)
+
         # Carefully reconstruct the network location
         netloc = auth or ""
         if netloc:
