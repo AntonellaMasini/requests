@@ -9,6 +9,7 @@ import idna
 import urllib3
 
 from . import __version__ as requests_version
+from .compat import chardet as _chardet_module
 
 try:
     import charset_normalizer
@@ -109,7 +110,8 @@ def info():
         "implementation": implementation_info,
         "system_ssl": system_ssl_info,
         "using_pyopenssl": pyopenssl is not None,
-        "using_charset_normalizer": chardet is None,
+        "using_charset_normalizer": _chardet_module is not None
+        and _chardet_module.__name__ == "charset_normalizer",
         "pyOpenSSL": pyopenssl_info,
         "urllib3": urllib3_info,
         "chardet": chardet_info,
