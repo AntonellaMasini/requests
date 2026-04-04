@@ -403,6 +403,25 @@ But, since our ``status_code`` for ``r`` was ``200``, when we call
 
 All is well.
 
+Here is a complete, copy-paste example that makes a request and handles
+status errors properly::
+
+    import requests
+    from requests.exceptions import HTTPError
+
+    url = "https://httpbin.org/get"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+    except HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except Exception as err:
+        print(f"An error occurred: {err}")
+    else:
+        print(f"Success! Status code: {response.status_code}")
+        print(response.json())
+
 
 Response Headers
 ----------------
